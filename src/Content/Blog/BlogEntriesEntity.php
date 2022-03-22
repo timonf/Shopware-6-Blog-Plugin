@@ -5,6 +5,7 @@ namespace Sas\BlogModule\Content\Blog;
 use Sas\BlogModule\Content\Blog\BlogTranslation\BlogTranslationCollection;
 use Sas\BlogModule\Content\BlogAuthor\BlogAuthorEntity;
 use Sas\BlogModule\Content\BlogCategory\BlogCategoryCollection;
+use Shopware\Core\Content\Cms\CmsPageEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityIdTrait;
 
@@ -46,6 +47,16 @@ class BlogEntriesEntity extends Entity
      * @var \DateTimeInterface
      */
     protected $publishedAt;
+
+    /**
+     * @var string|null
+     */
+    protected $cmsPageId;
+
+    /**
+     * @var CmsPageEntity|null
+     */
+    protected $cmsPage;
 
     public function getAuthorId(): string
     {
@@ -115,5 +126,25 @@ class BlogEntriesEntity extends Entity
     public function setPublishedAt(\DateTimeInterface $publishedAt): void
     {
         $this->publishedAt = $publishedAt;
+    }
+
+    public function getCmsPage(): ?CmsPageEntity
+    {
+        return $this->cmsPage;
+    }
+
+    public function setCmsPage(CmsPageEntity $cmsPage): void
+    {
+        $this->cmsPage = $cmsPage;
+    }
+
+    public function getCmsPageId(): ?string
+    {
+        return $this->cmsPageId;
+    }
+
+    public function setCmsPageId(string $cmsPageId): void
+    {
+        $this->cmsPageId = $cmsPageId;
     }
 }
