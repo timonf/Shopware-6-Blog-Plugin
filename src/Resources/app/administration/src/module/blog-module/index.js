@@ -4,8 +4,18 @@ const { Module } = Shopware;
  * Extensions
  */
 import './extension/sw-cms/component/sw-cms-sidebar';
+import './extension/sw-cms/page/sw-cms-list';
+
 import './extension/component/form/sas-text-field';
 import './extension/component/form/sas-textarea-field';
+import './extension/component/cms/sas-cms-section';
+import './extension/component/cms/sas-cms-slot';
+import './extension/component/cms/sas-cms-sidebar';
+
+/**
+ * Mixin
+ */
+import './mixin/sas-slug-generator.mixin';
 
 /**
  * privileges
@@ -18,6 +28,7 @@ import './page/sas-blog-list/acl';
  * Pages
  */
 import './page/sas-blog-list';
+import './page/sas-blog-create';
 import './page/sas-blog-detail';
 
 /**
@@ -79,20 +90,13 @@ Module.register('blog-module', {
         },
         create: {
             components: {
-                default: 'sas-blog-detail'
+                default: 'sas-blog-create'
             },
             path: 'create'
         },
         detail: {
             component: 'sas-blog-detail',
             path: 'detail/:id',
-            props: {
-                default: (route) => {
-                    return {
-                        blogId: route.params.id,
-                    };
-                },
-            },
         },
         author: {
             path: 'author',

@@ -24,13 +24,19 @@
                 "metaDescription": "Meta Description",
                 "metaTitle": "Meta Title"
             },
+            "sidebar": {
+                "heading": "Blog detail",
+                "basicInformation": "Basic information",
+                "settings": "Settings"
+            },
             "saveBlogEntry": "Save entry",
             "buttonCancel": "Cancel",
-            "activeLable": "Entry active",
-            "contentLable": "Markdown content",
-            "slugLable": "Slug",
+            "activeLabel": "Entry active",
+            "contentLabel": "Markdown content",
+            "slugLabel": "Slug",
+            "slugPlaceholder": "Undefined",
             "titleLabel": "Title",
-            "mediaLable": "Teaser Image",
+            "mediaLabel": "Teaser Image",
             "titlePlaceholder": "Enter your blog title",
             "teaserLabel": "Teaser",
             "teaserImageLabel": "Teaser Image",

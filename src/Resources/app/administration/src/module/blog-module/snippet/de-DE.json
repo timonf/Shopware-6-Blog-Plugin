@@ -19,13 +19,19 @@
             }
         },
         "detail": {
+            "sidebar": {
+                "heading": "Blog detail",
+                "basicInformation": "Grundlegende Information",
+                "settings": "Einstellungen"
+            },
             "saveBlogEntry": "Eintrag speichern",
             "buttonCancel": "Abbrechen",
-            "activeLable": "Artikel aktiv",
-            "contentLable": "Markdown Inhalt",
-            "slugLable": "Slug",
+            "activeLabel": "Artikel aktiv",
+            "contentLabel": "Markdown Inhalt",
+            "slugLabel": "Slug",
+            "slugPlaceholder": "Undefiniert",
             "titleLabel": "Titel",
-            "mediaLable": "Teaser Image",
+            "mediaLabel": "Teaser Image",
             "teaserLabel": "Teaser",
             "teaserImageLabel": "Teaser Bild",
             "teaserPlaceholder": "Der Teaser Text, welcher im Blog Listing angezeigt wird ...",

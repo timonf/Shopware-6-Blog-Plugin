@@ -1,77 +1,44 @@
-const { Component, Mixin } = Shopware;
 import template from './sas-blog-detail.html.twig';
-import './sas-blog-detail.scss';
+import BLOG from '../../constant/blog-module.constant';
 
 import slugify from '@slugify';
 
-const Criteria = Shopware.Data.Criteria;
-const { mapPropertyErrors } = Shopware.Component.getComponentHelper();
+const { Component, Mixin } = Shopware;
+const { Criteria } = Shopware.Data;
+const { debounce } = Shopware.Utils;
+const { cloneDeep } = Shopware.Utils.object;
+const { ShopwareError } = Shopware.Classes;
+const debounceTimeout = 300;
 
-Component.register('sas-blog-detail', {
+Component.extend('sas-blog-detail', 'sw-cms-detail', {
     template,
 
-    inject: ['repositoryFactory', 'systemConfigApiService'],
+    inject: [
+        'repositoryFactory',
+    ],
 
-    mixins: [Mixin.getByName('notification')],
-
-    metaInfo() {
-        return {
-            title: this.$createTitle()
-        };
-    },
-
-    props: {
-        blogId: {
-            type: String,
-            required: false,
-            default() {
-                return null;
-            },
-        },
-    },
+    mixins: [
+        Mixin.getByName('notification'),
+        Mixin.getByName('sas-slug-generator'),
+    ],
 
     data() {
         return {
+            blogId: null,
             blog: null,
-            maximumMetaTitleCharacter: 160,
-            maximumMetaDescriptionCharacter: 160,
-            configOptions: {},
-            isLoading: true,
-            processSuccess: false,
-            fileAccept: 'image/*',
-            moduleData: this.$route.meta.$module,
-            isProVersion: false,
             slugBlog: null,
+            isLoading: false,
             localeLanguage: null,
+            showSectionModal: false,
+            sectionDontRemind: false,
         };
     },
 
-    created() {
-        this.createdComponent();
-    },
-
-    watch: {
-        'blog.active': function () {
-            return this.blog.active ? 1 : 0;
-        },
-        'blog.title': function (value) {
-            if (typeof value !== 'undefined') {
-
-                this.getLocaleLanguage();
-
-                if (this.localeLanguage !== null) {
-                    this.slugMaker(value);
-                } else {
-                    this.blog.slug = value;
-                }
-            }
-        },
-        blogId() {
-            this.createdComponent();
-        },
-    },
-
     computed: {
+        identifier() {
+            return this.placeholder(this.blog, 'title');
+        },
+
         blogRepository() {
             return this.repositoryFactory.create('sas_blog_entries');
         },
@@ -80,12 +47,24 @@ Component.register('sas-blog-detail', {
             return this.repositoryFactory.create('locale');
         },
 
-        mediaItem() {
-            return this.blog !== null ? this.blog.media : null;
-        },
+        loadBlogCriteria() {
+            const criteria = new Criteria(1, 1);
+            const sortCriteria = Criteria.sort('position', 'ASC', true);
 
-        mediaRepository() {
-            return this.repositoryFactory.create('media');
+            criteria
+                .addAssociation('blogCategories')
+
+                .getAssociation('cmsPage')
+                .getAssociation('sections')
+                .addSorting(sortCriteria)
+                .addAssociation('backgroundMedia')
+
+                .getAssociation('blocks')
+                .addSorting(sortCriteria)
+                .addAssociation('backgroundMedia')
+                .addAssociation('slots');
+
+            return criteria;
         },
 
         backPath() {
@@ -95,8 +74,8 @@ Component.register('sas-blog-detail', {
                     query: {
                         ids: this.$route.query.ids,
                         limit: this.$route.query.limit,
-                        page: this.$route.query.page
-                    }
+                        page: this.$route.query.page,
+                    },
                 };
             }
             return { name: 'blog.module.index' };
@@ -105,178 +84,348 @@ Component.register('sas-blog-detail', {
         isCreateMode() {
             return this.$route.name === 'blog.module.create';
         },
+    },
 
-        ...mapPropertyErrors(
-            'blog', [
-                'title',
-                'slug',
-                'teaser',
-                'authorId',
-                'publishedAt'
-            ]
-        )
+    watch: {
+        'blog.title': function (blogTitle) {
+            this.onBlogTitleChanged(blogTitle);
+        },
     },
 
     methods: {
         async createdComponent() {
-            if(this.isCreateMode) {
-                if (Shopware.Context.api.languageId !== Shopware.Context.api.systemLanguageId) {
-                    Shopware.State.commit('context/setApiLanguageId', Shopware.Context.api.languageId)
-                }
+            Shopware.State.commit('adminMenu/collapseSidebar');
 
-                if (!Shopware.State.getters['context/isSystemDefaultLanguage']) {
-                    Shopware.State.commit('context/resetLanguageToDefault');
-                }
+            const isSystemDefaultLanguage = Shopware.State.getters['context/isSystemDefaultLanguage'];
+            this.$store.commit('cmsPageState/setIsSystemDefaultLanguage', isSystemDefaultLanguage);
+
+            this.resetCmsPageState();
+
+            if (this.$route.params.id) {
+                this.isLoading = true;
+                this.blogId = this.$route.params.id;
+
+                await this.loadBlog(this.blogId);
             }
 
-            await Promise.all([
-                this.getPluginConfig(),
-                this.getBlog(),
-                this.getLocaleLanguage(),
-            ]);
-
-            this.isLoading = false;
+            this.setPageContext();
         },
 
-        async getPluginConfig() {
-            const config = await this.systemConfigApiService.getValues('SasBlogModule.config');
-
-            this.maximumMetaTitleCharacter = config['SasBlogModule.config.maximumMetaTitleCharacter'];
-            this.maximumMetaDescriptionCharacter = config['SasBlogModule.config.maximumMetaDescriptionCharacter'];
-        },
-
-        async getBlog() {
-            if(!this.blogId) {
-                this.blog = this.blogRepository.create(Shopware.Context.api);
-
-                return;
-            }
-
-            const criteria = new Criteria();
-            criteria.addAssociation('blogCategories');
-
-            return this.blogRepository
-                .get(this.blogId, Shopware.Context.api, criteria)
-                .then((entity) => {
-                    this.blog = entity;
-                    this.slugBlog = this.blog.slug;
-                    return Promise.resolve();
-                });
-
-        },
-
-        async changeLanguage() {
-            await this.getBlog();
-            await this.slugMaker(this.slugBlog);
-        },
-
-        onClickSave() {
-            if (!this.blog.blogCategories || this.blog.blogCategories.length === 0) {
-                this.createNotificationError({
-                    message: this.$tc('sas-blog.detail.notification.error.missingCategory')
-                });
-
-                return;
-            }
-
+        loadBlog(blogId) {
             this.isLoading = true;
 
-            this.blogRepository
-                .save(this.blog, Shopware.Context.api)
-                .then(() => {
-                    this.isLoading = false;
-                    this.$router.push({ name: 'blog.module.detail', params: {id: this.blog.id} });
+            return this.blogRepository.get(blogId, Shopware.Context.api, this.loadBlogCriteria).then((entity) => {
+                this.blog = entity;
+                this.slugBlog = entity.slug;
 
-                    this.createNotificationSuccess({
-                        title: this.$tc('sas-blog.detail.notification.save-success.title'),
-                        message: this.$tc('sas-blog.detail.notification.save-success.text')
-                    });
-                })
-                .catch(exception => {
+                if (entity.cmsPageId) {
+                    this.page = entity.cmsPage;
+                    this.pageId = entity.cmsPageId;
+                    delete this.blog.cmsPage;
+                    return this.loadCMSDataResolver();
+                } else {
                     this.isLoading = false;
+                    this.createPage(entity.title);
+                    this.blog.cmsPageId = this.page.id;
+                    this.blogId = entity.id;
+                    return Promise.resolve();
+                }
+            }).catch((exception) => {
+                this.isLoading = false;
+                this.createNotificationError({
+                    title: exception.message, message: exception.response,
                 });
-        },
-
-        onCancel() {
-            this.$router.push({ name: 'blog.module.index' });
-        },
-
-        onSetMediaItem({ targetId }) {
-            this.mediaRepository.get(targetId, Shopware.Context.api).then((updatedMedia) => {
-                this.blog.mediaId = targetId;
-                this.blog.media = updatedMedia;
             });
         },
 
-        setMedia([mediaItem], mediaAssoc) {
-            this.blog.mediaId = mediaItem.id;
-            this.blog.media = mediaItem;
-        },
+        onPageSave(debounced = false) {
+            this.onPageUpdate();
 
-        onRemoveMediaItem() {
-            this.blog.mediaId = null;
-            this.blog.media = null;
-        },
-
-        onMediaDropped(dropItem) {
-            this.onSetMediaItem({ targetId: dropItem.id });
-        },
-
-        openMediaSidebar() {
-            this.$parent.$parent.$parent.$parent.$refs.mediaSidebarItem.openContent();
-        },
-
-        slugDetailsPage(result, value) {
-            this.blog.slug = value;
-            if (result.length > 0) {
-                if (result[0]['slug'] !== this.slugBlog) {
-                    this.blog.slug = value + "-" + "1";
-                }
-            }
-        },
-
-        slugCreatePage(result, value) {
-
-            if (result.length > 0) {
-
-                this.blog.slug = value + "-" + "1";
-
+            if (debounced) {
+                this.debouncedPageSave();
                 return;
             }
-            this.blog.slug = value;
+
+            this.onSaveBlog();
         },
 
-        async getLocaleLanguage() {
+        addAdditionalSection(type, index) {
+            if (!this.blogIsValid()) {
+                this.createNotificationError({
+                    message: this.$tc('sw-cms.detail.notification.pageInvalid'),
+                });
+
+                this.$nextTick(() => {
+                    if (this.$refs.cmsStageAddSection) {
+                        this.$refs.cmsStageAddSection.showSelection = true;
+                    }
+                });
+
+                return Promise.reject();
+            }
+
+            this.onAddSection(type, index);
+            return this.onSaveBlog();
+        },
+
+        async onChangeLanguage() {
+            this.isLoading = true;
+
+            return this.salesChannelRepository.search(new Criteria()).then((response) => {
+                this.salesChannels = response;
+                const isSystemDefaultLanguage = Shopware.State.getters['context/isSystemDefaultLanguage'];
+                this.$store.commit('cmsPageState/setIsSystemDefaultLanguage', isSystemDefaultLanguage);
+                return this.loadBlog(this.blogId);
+            });
+        },
+
+        saveOnLanguageChange() {
+            return this.onSaveBlog();
+        },
+
+        loadCMSDataResolver() {
+            this.isLoading = true;
+
+            return this.cmsDataResolverService.resolve(this.page).then(() => {
+                this.updateSectionAndBlockPositions();
+                Shopware.State.commit('cmsPageState/setCurrentPage', this.page);
+
+                this.updateDataMapping();
+                this.pageOrigin = cloneDeep(this.page);
+
+                if (this.selectedBlock) {
+                    const blockId = this.selectedBlock.id;
+                    const blockSectionId = this.selectedBlock.sectionId;
+                    this.page.sections.forEach((section) => {
+                        if (section.id === blockSectionId) {
+                            section.blocks.forEach((block) => {
+                                if (block.id === blockId) {
+                                    this.setSelectedBlock(blockSectionId, block);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                this.isLoading = false;
+            }).catch((exception) => {
+                this.isLoading = false;
+
+                this.createNotificationError({
+                    title: exception.message,
+                    message: exception.response,
+                });
+
+                warn(this._name, exception.message, exception.response);
+            });
+        },
+
+        onSaveBlog() {
+            if (!this.blogIsValid()) {
+                this.createNotificationError({
+                    message: this.$tc('sw-cms.detail.notification.pageInvalid'),
+                });
+
+                return Promise.reject();
+            }
+
+            if (!this.pageIsValid()) {
+                this.createNotificationError({
+                    message: this.$tc('sw-cms.detail.notification.pageInvalid'),
+                });
+
+                return Promise.reject();
+            }
+
+            if (this.showMissingElementModal) {
+                return Promise.reject();
+            }
+
+            return this.onSavePageEntity()
+                .then(() => this.onSaveBlogEntity())
+                .then(() => this.loadBlog(this.blogId))
+                .catch(exception => {
+                    this.isLoading = false;
+
+                    this.createNotificationError({
+                        message: exception.message,
+                    });
+
+                    return Promise.reject(exception);
+                });
+        },
+
+        onSaveBlogEntity() {
+            this.isLoading = true;
+
+            return this.blogRepository.save(this.blog, Shopware.Context.api).then(() => {
+                this.isLoading = false;
+                this.$router.push({ name: 'blog.module.detail', params: { id: this.blog.id } });
+
+                return Promise.resolve();
+            }).catch(exception => {
+                this.isLoading = false;
+
+                this.createNotificationError({
+                    message: exception.message,
+                });
+
+                return Promise.reject(exception);
+            });
+        },
+
+        onSavePageEntity() {
+            this.isLoading = true;
+            this.deleteEntityAndRequiredConfigKey(this.page.sections);
+
+            return this.pageRepository.save(this.page, Shopware.Context.api, false).then(() => {
+                this.isLoading = false;
+                this.isSaveSuccessful = true;
+
+                return Promise.resolve();
+            }).catch((exception) => {
+                this.isLoading = false;
+
+                this.createNotificationError({
+                    message: exception.message,
+                });
+
+                return Promise.reject(exception);
+            });
+        },
+
+        blogIsValid() {
+            Shopware.State.dispatch('error/resetApiErrors');
+
+            return [
+                this.missingTitleValidation(),
+                this.missingPublishedAtValidation(),
+                this.missingAuthorIdValidation(),
+                this.missingCategoriesValidation(),
+            ].every(validation => validation);
+        },
+
+        missingTitleValidation() {
+            if (!this.isSystemDefaultLanguage || this.blog.title) {
+                return true;
+            }
+
+            this.addBlogError({
+                property: 'title',
+                message: this.$tc('sw-cms.detail.notification.messageMissingFields'),
+            });
+
+            return false;
+        },
+
+        missingPublishedAtValidation() {
+            if (this.blog.publishedAt) {
+                return true;
+            }
+
+            this.addBlogError({
+                property: 'publishedAt',
+                message: this.$tc('sw-cms.detail.notification.messageMissingFields'),
+            });
+
+            return false;
+        },
+
+        missingAuthorIdValidation() {
+            if (this.blog.authorId) {
+                return true;
+            }
+
+            this.addBlogError({
+                property: 'authorId',
+                message: this.$tc('sw-cms.detail.notification.messageMissingFields'),
+            });
+
+            return false;
+        },
+
+        missingCategoriesValidation() {
+            if (this.blog.blogCategories && this.blog.blogCategories.length) {
+                return true;
+            }
+
+            this.addBlogError({
+                property: 'blogCategories',
+                message: this.$tc('sw-cms.detail.notification.messageMissingFields'),
+            });
+
+            return false;
+        },
+
+        pageSectionCountValidation() {
+            return true;
+        },
+
+        onBlogTitleChanged: debounce(function (blogTitle) {
+            if (!blogTitle) {
+                return;
+            }
+
+            this.page.name = blogTitle;
+            this.getLocaleLanguage();
+            this.generateSlug(blogTitle);
+        }, debounceTimeout),
+
+        addBlogError({
+            property = null,
+            payload = {},
+            code = BLOG.REQUIRED_FIELD_ERROR_CODE,
+            message = '',
+        } = {}) {
+            const expression = `sas_blog_entries.${this.blog.id}.${property}`;
+            const error = new ShopwareError({
+                code,
+                detail: message,
+                meta: { parameters: payload },
+            });
+
+            Shopware.State.commit('error/addApiError', { expression, error });
+        },
+
+        getLocaleLanguage() {
             return this.localeRepository.get(Shopware.Context.api.language.localeId, Shopware.Context.api).then((result) => {
-                this.localeLanguage = result.code.substr(0, result.code.length-3).toLowerCase();
+                this.localeLanguage = result.code.substr(0, result.code.length - 3).toLowerCase();
                 return Promise.resolve(this.localeLanguage);
             });
         },
 
-        slugMaker(value) {
-
-            value = (value === null) ? "" : value;
-
-            if (this.localeLanguage !== "") {
-
-                const criteria = new Criteria();
-                const valueSlug = slugify(value, { locale: this.localeLanguage, lower: true });
-
-                criteria.addFilter(
-                    Criteria.equals('slug', valueSlug)
-                );
-
-                this.blogRepository.search(criteria, Shopware.Context.api).then((result) => {
-
-                    if (this.$route.name === "blog.module.detail") {
-                        this.slugDetailsPage(result, slugify(value, { locale: this.localeLanguage, lower: true }));
-
-                        return;
-                    }
-
-                    this.slugCreatePage(result, slugify(value, { locale: this.localeLanguage, lower: true }));
-                });
+        generateSlug(value) {
+            if (!value) {
+                return;
             }
-        }
-    }
+
+            const slug = slugify(value, { locale: this.localeLanguage, lower: true });
+
+            if (!this.localeLanguage) {
+                this.blog.slug = slug;
+                return;
+            }
+
+            const criteria = new Criteria();
+            criteria.addFilter(Criteria.equals('slug', slug));
+
+            this.blogRepository.search(criteria, Shopware.Context.api).then((blogs) => {
+                if (this.isCreateMode) {
+                    this.blog.slug = this.generateSlugForCreatePage(blogs, slug);
+                    return;
+                }
+
+                this.blog.slug = this.generateSlugForDetailsPage(blogs, slug, this.slugBlog);
+            }).catch((e) => {
+                this.blog.slug = slug;
+            });
+        },
+
+        createPage(name) {
+            this.page = this.pageRepository.create();
+            this.page.name = name;
+            this.page.type = BLOG.CMS_PAGE_TYPE;
+            this.pageId = this.page.id;
+        },
+    },
 });
