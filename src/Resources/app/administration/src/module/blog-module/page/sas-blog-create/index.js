@@ -11,16 +11,15 @@ Component.extend('sas-blog-create', 'sas-blog-detail', {
 
             const isSystemDefaultLanguage = Shopware.State.getters['context/isSystemDefaultLanguage'];
             this.$store.commit('cmsPageState/setIsSystemDefaultLanguage', isSystemDefaultLanguage);
-
-            this.resetCmsPageState();
+            if (!isSystemDefaultLanguage) {
+                Shopware.State.commit('context/resetLanguageToDefault');
+            }
 
             if (Shopware.Context.api.languageId !== Shopware.Context.api.systemLanguageId) {
                 Shopware.State.commit('context/setApiLanguageId', Shopware.Context.api.languageId);
             }
 
-            if (!Shopware.State.getters['context/isSystemDefaultLanguage']) {
-                Shopware.State.commit('context/resetLanguageToDefault');
-            }
+            this.resetCmsPageState();
 
             this.createPage();
             this.createBlog(this.page.id);

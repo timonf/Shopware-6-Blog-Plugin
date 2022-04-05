@@ -424,7 +424,7 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
         createPage(name) {
             this.page = this.pageRepository.create();
             this.page.name = name;
-            this.page.type = BLOG.CMS_PAGE_TYPE;
+            this.page.type = BLOG.PAGE_TYPES.BLOG_DETAIL;
             this.pageId = this.page.id;
         },
     },

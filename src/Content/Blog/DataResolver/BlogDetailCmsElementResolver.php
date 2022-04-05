@@ -10,6 +10,7 @@ use Shopware\Core\Content\Cms\DataResolver\Element\ElementDataCollection;
 use Shopware\Core\Content\Cms\DataResolver\ResolverContext\ResolverContext;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 
 class BlogDetailCmsElementResolver extends AbstractCmsElementResolver
 {
@@ -20,16 +21,25 @@ class BlogDetailCmsElementResolver extends AbstractCmsElementResolver
 
     public function collect(CmsSlotEntity $slot, ResolverContext $resolverContext): ?CriteriaCollection
     {
-        /* get the config from the element */
-        $config = $slot->getFieldConfig();
-
         $criteria = new Criteria();
 
         $criteria->addFilter(
             new EqualsFilter('active', true),
             new EqualsFilter('id', $resolverContext->getRequest()->get('articleId'))
         );
-        $criteria->addAssociations(['author', 'blogCategories']);
+        $criteria
+            ->addAssociations(['author', 'blogCategories'])
+            ->addAssociation('cmsPage.sections.backgroundMedia')
+            ->addAssociation('cmsPage.sections.blocks.backgroundMedia');
+        $criteria
+            ->getAssociation('cmsPage.sections')
+            ->addSorting(new FieldSorting('position', FieldSorting::ASCENDING));
+        $criteria
+            ->getAssociation('cmsPage.sections.blocks')
+            ->addSorting(new FieldSorting('position', FieldSorting::ASCENDING));
+        $criteria
+            ->getAssociation('cmsPage.sections.blocks.slots')
+            ->addSorting(new FieldSorting('slot', FieldSorting::ASCENDING));
 
         $criteriaCollection = new CriteriaCollection();
 
