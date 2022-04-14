@@ -1,5 +1,6 @@
 import template from './sas-blog-detail.html.twig';
 import BLOG from '../../constant/blog-module.constant';
+import swVersionHelper from '../../helper/shopware-version.helper';
 
 import slugify from '@slugify';
 
@@ -111,6 +112,31 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
             this.setPageContext();
         },
 
+        /**
+         * This function will be called after block was moved
+         * If the block is moved to another section, the page data will be loaded again
+         * If not the page data will be saved
+         *
+         * @override
+         * @param isCrossSectionMove
+         */
+        onBlockNavigatorSort(isCrossSectionMove = false) {
+            if (isCrossSectionMove) {
+                this.loadPage(this.pageId);
+                return;
+            }
+
+            this.onPageUpdate();
+            this.debouncedPageSave();
+        },
+
+        /**
+         * Debounced wrapper for the savePage function
+         */
+        debouncedPageSave: debounce(function debouncedOnSave() {
+            this.onSave();
+        }, debounceTimeout),
+
         loadBlog(blogId) {
             this.isLoading = true;
 
@@ -152,7 +178,7 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
         addAdditionalSection(type, index) {
             if (!this.blogIsValid()) {
                 this.createNotificationError({
-                    message: this.$tc('sw-cms.detail.notification.pageInvalid'),
+                    message: this.$tc('sas-blog.detail.notification.error.pageInvalid'),
                 });
 
                 this.$nextTick(() => {
@@ -223,15 +249,15 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
         onSaveBlog() {
             if (!this.blogIsValid()) {
                 this.createNotificationError({
-                    message: this.$tc('sw-cms.detail.notification.pageInvalid'),
+                    message: this.$tc('sas-blog.detail.notification.error.pageInvalid'),
                 });
 
                 return Promise.reject();
             }
 
-            if (!this.pageIsValid()) {
+            if (!this.cmsPageIsValid()) {
                 this.createNotificationError({
-                    message: this.$tc('sw-cms.detail.notification.pageInvalid'),
+                    message: this.$tc('sas-blog.detail.notification.error.pageInvalid'),
                 });
 
                 return Promise.reject();
@@ -355,6 +381,64 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
             });
 
             return false;
+        },
+
+        /**
+         * Call to compatible function base on shopware version
+         * On shopware version < 6.4.8.0 the function pageIsValid is not available
+         *
+         * @returns {boolean}
+         */
+        cmsPageIsValid() {
+            if (swVersionHelper.versionGTE('6.4.8.0')) {
+                return this.cmsPageIsValidV648();
+            }
+
+            return this.cmsPageIsValidV640()
+        },
+
+        /**
+         * Call pageIsValid function from `sw-cms-detail` component
+         * Compatible with >= sw6.4.8.0
+         *
+         * @returns {boolean}
+         */
+        cmsPageIsValidV648() {
+            return this.pageIsValid();
+        },
+
+        /**
+         * This function will handle the same logic as the `pageIsValid` function
+         *   from `sw-cms-detail` component, but it will be compatible with < sw6.4.8.0
+         *   and will be used if the `pageIsValid` function is not available
+         * It checks if the page has a name and type
+         * It checks if the blocks were configured sufficiently
+         *
+         * @returns {boolean}
+         */
+        cmsPageIsValidV640() {
+            if ((this.isSystemDefaultLanguage && !this.page.name) || !this.page.type) {
+                this.pageConfigOpen();
+
+                const warningMessage = this.$tc('sw-cms.detail.notification.messageMissingFields');
+                this.createNotificationError({
+                    message: warningMessage,
+                });
+
+                return false;
+            }
+
+            const { foundEmptyRequiredField } = this.getSlotValidations(this.page.sections);
+            if (foundEmptyRequiredField.length > 0) {
+                const warningMessage = this.$tc('sw-cms.detail.notification.messageMissingBlockFields');
+                this.createNotificationError({
+                    message: warningMessage,
+                });
+
+                return false;
+            }
+
+            return true;
         },
 
         pageSectionCountValidation() {

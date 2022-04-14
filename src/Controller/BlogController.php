@@ -3,9 +3,8 @@
 namespace Sas\BlogModule\Controller;
 
 use Sas\BlogModule\Content\Blog\BlogEntriesEntity;
+use Sas\BlogModule\Page\Blog\BlogPageLoader;
 use Sas\BlogModule\Page\Search\BlogSearchPageLoader;
-use Shopware\Core\Content\Cms\Exception\PageNotFoundException;
-use Shopware\Core\Content\Cms\SalesChannel\SalesChannelCmsPageLoaderInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -13,7 +12,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\RangeFilter;
 use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Shopware\Core\Framework\Routing\Exception\MissingRequestParameterException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Shopware\Storefront\Controller\StorefrontController;
 use Shopware\Storefront\Framework\Cache\Annotation\HttpCache;
 use Shopware\Storefront\Page\GenericPageLoaderInterface;
@@ -29,25 +27,21 @@ class BlogController extends StorefrontController
 {
     private GenericPageLoaderInterface $genericPageLoader;
 
-    private SalesChannelCmsPageLoaderInterface $cmsPageLoader;
-
-    private SystemConfigService $systemConfigService;
-
     private EntityRepositoryInterface $blogRepository;
+
+    private BlogPageLoader $blogPageLoader;
 
     private BlogSearchPageLoader $blogSearchPageLoader;
 
     public function __construct(
-        SystemConfigService $systemConfigService,
         GenericPageLoaderInterface $genericPageLoader,
-        SalesChannelCmsPageLoaderInterface $cmsPageLoader,
         EntityRepositoryInterface $blogRepository,
+        BlogPageLoader $blogPageLoader,
         BlogSearchPageLoader $blogSearchPageLoader
     ) {
-        $this->systemConfigService = $systemConfigService;
         $this->genericPageLoader = $genericPageLoader;
-        $this->cmsPageLoader = $cmsPageLoader;
         $this->blogRepository = $blogRepository;
+        $this->blogPageLoader = $blogPageLoader;
         $this->blogSearchPageLoader = $blogSearchPageLoader;
     }
 
@@ -88,38 +82,10 @@ class BlogController extends StorefrontController
      * @HttpCache()
      * @Route("/sas_blog/{articleId}", name="sas.frontend.blog.detail", methods={"GET"})
      */
-    public function detailAction(string $articleId, Request $request, SalesChannelContext $context): Response
+    public function detailAction(Request $request, SalesChannelContext $context): Response
     {
-        $page = $this->genericPageLoader->load($request, $context);
-        $page = NavigationPage::createFrom($page);
-
-        $criteria = new Criteria([$articleId]);
-
-        $criteria->addAssociations(['author.salutation', 'blogCategories']);
-
-        $results = $this->blogRepository->search($criteria, $context->getContext())->getEntities();
-
-        /** @var BlogEntriesEntity $entry */
-        $entry = $results->first();
-
-        if (!$entry) {
-            throw new PageNotFoundException($articleId);
-        }
-
-        $pages = $this->cmsPageLoader->load(
-            $request,
-            new Criteria([$this->systemConfigService->get('SasBlogModule.config.cmsBlogDetailPage')]),
-            $context
-        );
-
-        $page->setCmsPage($pages->first());
-        $metaInformation = $page->getMetaInformation();
-
-        $metaInformation->setAuthor($entry->getAuthor()->getTranslated()['name']);
-
-        $page->setMetaInformation($metaInformation);
-
-        $page->setNavigationId($page->getHeader()->getNavigation()->getActive()->getId());
+        $page = $this->blogPageLoader->load($request, $context);
+        $entry = $page->getBlogEntry();
 
         return $this->renderStorefront('@Storefront/storefront/page/content/index.html.twig', [
             'page' => $page,

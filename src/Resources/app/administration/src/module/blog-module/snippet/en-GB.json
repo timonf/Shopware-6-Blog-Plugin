@@ -65,7 +65,8 @@
                     "text": "Your blog entry has been saved."
                 },
                 "error": {
-                    "missingCategory": "Please choose at least one blog category!"
+                    "missingCategory": "Please choose at least one blog category!",
+                    "pageInvalid": "Errors occured. Please check the error list in the editor."
                 }
             },
             "author": {
