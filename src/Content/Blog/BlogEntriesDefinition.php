@@ -61,8 +61,8 @@ class BlogEntriesDefinition extends EntityDefinition
 
             new FkField('media_id', 'mediaId', MediaDefinition::class),
             (new FkField('author_id', 'authorId', BlogAuthorDefinition::class))->addFlags(new Required()),
-            (new FkField('cms_page_id', 'cmsPageId', CmsPageDefinition::class))->addFlags(new ApiAware(), new Inherited()),
-            (new ReferenceVersionField(CmsPageDefinition::class))->addFlags(new PrimaryKey(), new Required()),
+            (new FkField('cms_page_id', 'cmsPageId', CmsPageDefinition::class))->addFlags(new ApiAware()),
+            (new ReferenceVersionField(CmsPageDefinition::class))->addFlags(new Required(), new ApiAware()),
 
             (new OneToOneAssociationField('media', 'media_id', 'id', MediaDefinition::class, true))->addFlags(new ApiAware()),
 

@@ -14,7 +14,18 @@ class Migration1647338771SasBlogEntriesUpdate extends MigrationStep
 
     public function update(Connection $connection): void
     {
-        $connection->executeUpdate('
+        $this->updateSchema($connection);
+        $this->createDeleteTrigger($connection);
+    }
+
+    public function updateDestructive(Connection $connection): void
+    {
+        // implement update destructive
+    }
+
+    public function updateSchema(Connection $connection): void
+    {
+        $connection->executeStatement('
             ALTER TABLE `sas_blog_entries`
             ADD `cms_page_id` BINARY(16) NULL AFTER `id`,
             ADD `cms_page_version_id` binary(16) NULL AFTER `cms_page_id`,
@@ -26,8 +37,19 @@ class Migration1647338771SasBlogEntriesUpdate extends MigrationStep
         ');
     }
 
-    public function updateDestructive(Connection $connection): void
+    private function createDeleteTrigger(Connection $connection): void
     {
-        // implement update destructive
+        $query
+            = 'CREATE TRIGGER sas_blog_entries_delete AFTER DELETE ON sas_blog_entries
+            FOR EACH ROW
+            BEGIN
+                IF @TRIGGER_DISABLED IS NULL OR @TRIGGER_DISABLED = 0 THEN
+                IF (OLD.cms_page_id IS NOT NULL) THEN
+                    DELETE FROM cms_page WHERE id = OLD.cms_page_id;
+                END IF;
+                END IF;
+            END;';
+
+        $this->createTrigger($connection, $query);
     }
 }
