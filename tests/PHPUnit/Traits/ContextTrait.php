@@ -18,10 +18,12 @@ trait ContextTrait
         $context = $this->getContext($testCase);
 
         $salesChannel = $testCase->createConfiguredMock(SalesChannelEntity::class, [
-            'getId' => 'bar',
+            'getId' => '12345678901234567890123456789012',
         ]);
 
         return $testCase->createConfiguredMock(SalesChannelContext::class, [
+            'getLanguageId' => '12345678901234567890123456789012',
+            'getSalesChannelId' => $salesChannel->getId(),
             'getSalesChannel' => $salesChannel,
             'getContext' => $context,
         ]);

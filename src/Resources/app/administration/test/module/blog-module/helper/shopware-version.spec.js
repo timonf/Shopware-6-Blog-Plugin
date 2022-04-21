@@ -1,4 +1,4 @@
-import swVersionHelper from '../../../../src/module/blog-module/helper/shopware-version.helper';
+import swVersionHelper from 'plugin-admin/src/module/blog-module/helper/shopware-version.helper';
 
 describe('versionCompare method', () => {
     it('should return 1 if the second is lower', () => {

@@ -9,31 +9,36 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Routing\Exception\MissingRequestParameterException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Storefront\Page\GenericPageLoaderInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 class BlogSearchPageLoader
 {
-    private GenericPageLoaderInterface $genericLoader;
+    private const DEFAULT_LIMIT = 24;
 
-    private EventDispatcherInterface $eventDispatcher;
+    private const DEFAULT_PAGE = 1;
+
+    private GenericPageLoaderInterface $genericLoader;
 
     private EntityRepositoryInterface $blogRepository;
 
     public function __construct(
         GenericPageLoaderInterface $genericLoader,
-        EntityRepositoryInterface $blogRepository,
-        EventDispatcherInterface $eventDispatcher
+        EntityRepositoryInterface $blogRepository
     ) {
         $this->genericLoader = $genericLoader;
         $this->blogRepository = $blogRepository;
-        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
+     * Loads the blog search page.
+     * It gets the blog search results from the blog repository and passes them to the generic page loader.
+     *
+     * @param  Request                          $request
+     * @param  SalesChannelContext              $context
      * @throws CategoryNotFoundException
      * @throws InconsistentCriteriaIdsException
      * @throws MissingRequestParameterException
+     * @return BlogSearchPage
      */
     public function load(Request $request, SalesChannelContext $context): BlogSearchPage
     {
@@ -50,35 +55,51 @@ class BlogSearchPageLoader
             $page->getMetaInformation()->setRobots('noindex,follow');
         }
 
-        $criteria = new Criteria();
-
-        $criteria->setTerm($request->query->get('search'));
-
-        $this->handlePagination($request, $criteria);
-
-        $criteria->setTitle('blog-search-page');
+        $criteria = $this->createCriteria($request);
 
         $result = $this->blogRepository->search($criteria, $context->getContext());
         $page->setListing($result);
 
         $page->setSearchTerm(
-            (string) $request->query->get('search')
+            (string)$request->query->get('search')
         );
 
         return $page;
     }
 
-    private function handlePagination(Request $request, Criteria $criteria): void
+    /**
+     * Create a criteria for the blog listing.
+     * It gets limit and page from the request.
+     * It calculates the offset.
+     * It sets the search term.
+     *
+     * @param  Request  $request
+     * @return Criteria
+     */
+    private function createCriteria(Request $request): Criteria
     {
+        $term = $request->query->get('search');
         $limit = $this->getLimit($request);
-
         $page = $this->getPage($request);
+        $offset = ($page - 1) * $limit;
 
-        $criteria->setOffset(($page - 1) * $limit);
+        $criteria = new Criteria();
+        $criteria->setTerm($term);
         $criteria->setLimit($limit);
+        $criteria->setOffset($offset);
+        $criteria->setTitle('blog-search-page');
         $criteria->setTotalCountMode(Criteria::TOTAL_COUNT_MODE_EXACT);
+
+        return $criteria;
     }
 
+    /**
+     * Get the limit from the request.
+     * It also gets value from the POST request.
+     *
+     * @param  Request $request
+     * @return int
+     */
     private function getLimit(Request $request): int
     {
         $limit = $request->query->getInt('limit', 0);
@@ -87,11 +108,16 @@ class BlogSearchPageLoader
             $limit = $request->request->getInt('limit', $limit);
         }
 
-        $limit = $limit > 0 ? $limit : 24;
-
-        return $limit <= 0 ? 24 : $limit;
+        return $limit <= 0 ? self::DEFAULT_LIMIT : $limit;
     }
 
+    /**
+     * Get the page from the request.
+     * It also gets value from the POST request.
+     *
+     * @param  Request $request
+     * @return int
+     */
     private function getPage(Request $request): int
     {
         $page = $request->query->getInt('p', 1);
@@ -100,6 +126,6 @@ class BlogSearchPageLoader
             $page = $request->request->getInt('p', $page);
         }
 
-        return $page <= 0 ? 1 : $page;
+        return $page <= 0 ? self::DEFAULT_PAGE : $page;
     }
 }

@@ -1,16 +1,26 @@
 {
-  "name": "Resources",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "dependencies": {
-    "slugify": "^1.4.6"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/plugin-transform-runtime": "^7.15.0",
-    "@babel/preset-env": "^7.15.6",
-    "@babel/runtime": "^7.15.4",
-    "jest": "^27.1.1"
-  }
+    "name": "Resources",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "dependencies": {
+        "slugify": "^1.4.6"
+    },
+    "devDependencies": {
+        "@babel/plugin-proposal-class-properties": "^7.16.7",
+        "@babel/plugin-transform-runtime": "7.13.15",
+        "@babel/preset-env": "7.13.15",
+        "@shopware-ag/jest-preset-sw6-admin": "^2.0.1",
+        "@vue/test-utils": "1.1.0",
+        "babel-eslint": "10.1.0",
+        "babel-loader": "8.0.6",
+        "eslint": "^7.32.0",
+        "eslint-config-standard": "^16.0.3",
+        "eslint-plugin-import": "^2.24.2",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^5.1.0",
+        "eslint-plugin-standard": "^5.0.0",
+        "jest": "26.4.2",
+        "vuex": "3.1.1"
+    }
 }

@@ -10,14 +10,14 @@ Component.extend('sas-cms-sidebar', 'sw-cms-sidebar', {
 
     inject: [
         'repositoryFactory',
-        'systemConfigApiService'
+        'systemConfigApiService',
     ],
 
     props: {
         blog: {
             type: Object,
-            default: () => ({})
-        }
+            default: () => ({}),
+        },
     },
 
     data() {
@@ -46,7 +46,7 @@ Component.extend('sas-cms-sidebar', 'sw-cms-sidebar', {
         },
 
         ...mapPageErrors(errorConfig),
-        ...mapPropertyErrors('blog', ['title', 'slug', 'teaser', 'authorId', 'publishedAt', 'blogCategories'])
+        ...mapPropertyErrors('blog', ['title', 'slug', 'teaser', 'authorId', 'publishedAt', 'blogCategories']),
     },
 
     methods: {
@@ -54,7 +54,7 @@ Component.extend('sas-cms-sidebar', 'sw-cms-sidebar', {
             this.systemConfigApiService.getValues('SasBlogModule.config').then(config => {
                 this.maximumMetaTitleCharacter = config['SasBlogModule.config.maximumMetaTitleCharacter'];
                 this.maximumMetaDescriptionCharacter = config['SasBlogModule.config.maximumMetaDescriptionCharacter'];
-            })
+            });
         },
 
         onSetMediaItem({ targetId }) {
@@ -64,7 +64,7 @@ Component.extend('sas-cms-sidebar', 'sw-cms-sidebar', {
             });
         },
 
-        setMedia([mediaItem], mediaAssoc) {
+        setMedia([mediaItem]) {
             this.blog.mediaId = mediaItem.id;
             this.blog.media = mediaItem;
         },
@@ -84,8 +84,12 @@ Component.extend('sas-cms-sidebar', 'sw-cms-sidebar', {
                     return;
                 }
 
+                if (typeof this.$refs.blogDetailSidebar.openContent !== 'function') {
+                    return;
+                }
+
                 this.$refs.blogDetailSidebar.openContent();
             });
-        }
+        },
     },
 });

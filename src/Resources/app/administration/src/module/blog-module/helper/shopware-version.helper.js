@@ -33,7 +33,7 @@ function versionCompare(version1, version2, operator) {
 
     version1 = _prepVersion(version1);
     version2 = _prepVersion(version2);
-    let maxLengthOfTwo = Math.max(version1.length, version2.length);
+    const maxLengthOfTwo = Math.max(version1.length, version2.length);
 
     for (index = 0; index < maxLengthOfTwo; index++) {
         if (version1[index] === version2[index]) {

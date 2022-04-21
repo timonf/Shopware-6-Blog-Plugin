@@ -37,52 +37,70 @@ class Lifecycle
         $blogListingCmsPageId = Uuid::randomHex();
         $blogDetailCmsPageId = Uuid::randomHex();
 
-        $cmsPage = [
-            [
-                'id' => $blogListingCmsPageId,
-                'type' => 'page',
-                'name' => 'Blog Listing',
-                'sections' => [
-                    [
-                        'id' => Uuid::randomHex(),
-                        'type' => 'default',
-                        'position' => 0,
-                        'blocks' => [
-                            [
-                                'position' => 1,
-                                'type' => 'blog-listing',
-                                'slots' => [
-                                    ['type' => 'blog', 'slot' => 'listing'],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'id' => $blogDetailCmsPageId,
-                'type' => 'page',
-                'name' => 'Blog Detail',
-                'sections' => [
-                    [
-                        'id' => Uuid::randomHex(),
-                        'type' => 'default',
-                        'position' => 0,
-                        'blocks' => [
-                            [
-                                'position' => 1,
-                                'type' => 'blog-detail',
-                                'slots' => [
-                                    ['type' => 'blog-detail', 'slot' => 'blogDetail'],
-                                ],
+        $cmsPage = $this->createCmsPagesData($blogListingCmsPageId, $blogDetailCmsPageId);
+
+        $this->cmsPageRepository->create($cmsPage, $context);
+        $this->systemConfig->set('SasBlogModule.config.cmsBlogDetailPage', $blogDetailCmsPageId);
+    }
+
+    private function createCmsPagesData(string $blogListingCmsPageId, string $blogDetailCmsPageId): array
+    {
+        $blogListingCmsPageData = $this->createBlogListingCmsPageData($blogListingCmsPageId);
+        $blogDetailCmsPageData = $this->createBlogDetailCmsPageData($blogDetailCmsPageId);
+
+        return [
+            $blogListingCmsPageData,
+            $blogDetailCmsPageData,
+        ];
+    }
+
+    private function createBlogListingCmsPageData(string $blogListingCmsPageId): array
+    {
+        return [
+            'id'       => $blogListingCmsPageId,
+            'type'     => 'page',
+            'name'     => 'Blog Listing',
+            'sections' => [
+                [
+                    'id'       => Uuid::randomHex(),
+                    'type'     => 'default',
+                    'position' => 0,
+                    'blocks'   => [
+                        [
+                            'position' => 1,
+                            'type'     => 'blog-listing',
+                            'slots'    => [
+                                ['type' => 'blog', 'slot' => 'listing'],
                             ],
                         ],
                     ],
                 ],
             ],
         ];
+    }
 
-        $this->cmsPageRepository->create($cmsPage, $context);
-        $this->systemConfig->set('SasBlogModule.config.cmsBlogDetailPage', $blogDetailCmsPageId);
+    private function createBlogDetailCmsPageData(string $blogDetailCmsPageId): array
+    {
+        return [
+            'id'       => $blogDetailCmsPageId,
+            'type'     => 'page',
+            'name'     => 'Blog Detail',
+            'sections' => [
+                [
+                    'id'       => Uuid::randomHex(),
+                    'type'     => 'default',
+                    'position' => 0,
+                    'blocks'   => [
+                        [
+                            'position' => 1,
+                            'type'     => 'blog-detail',
+                            'slots'    => [
+                                ['type' => 'blog-detail', 'slot' => 'blogDetail'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
     }
 }

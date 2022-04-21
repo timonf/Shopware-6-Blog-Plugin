@@ -2,7 +2,8 @@
 
 $finder = PhpCsFixer\Finder::create()
     ->in('src')
-    ->exclude('vendor');
+    ->exclude('vendor')
+    ->exclude(['Resources']);
 
 return PhpCsFixer\Config::create()
     ->setRules([
@@ -12,7 +13,6 @@ return PhpCsFixer\Config::create()
         'hash_to_slash_comment'               => true,
         'method_separation'                   => true,
         'no_blank_lines_after_phpdoc'         => true,
-        'no_blank_lines_before_namespace'     => true,
         'no_unused_imports'                   => true,
         'no_useless_else'                     => true,
         'phpdoc_align'                        => true,
@@ -27,6 +27,7 @@ return PhpCsFixer\Config::create()
         'trim_array_spaces'                   => true,
         'whitespace_after_comma_in_array'     => true,
         'phpdoc_add_missing_param_annotation' => true,
+        'ordered_imports'                     => true,
         'binary_operator_spaces'              => ['align_equals' => false, 'align_double_arrow' => true],
         'concat_space'                        => ['spacing' => 'one'],
         'array_syntax'                        => ['syntax' => 'short'],

@@ -103,16 +103,16 @@ class SasBlogModule extends Plugin
 
         $mediaFolderRepository->create([
             [
-                'entity' => BlogEntriesDefinition::ENTITY_NAME,
+                'entity'            => BlogEntriesDefinition::ENTITY_NAME,
                 'associationFields' => ['media'],
-                'folder' => [
-                    'name' => 'Blog Images',
+                'folder'            => [
+                    'name'                   => 'Blog Images',
                     'useParentConfiguration' => false,
-                    'configuration' => [
-                        'createThumbnails' => true,
+                    'configuration'          => [
+                        'createThumbnails'    => true,
                         'mediaThumbnailSizes' => [
                             [
-                                'width' => 650,
+                                'width'  => 650,
                                 'height' => 330,
                             ],
                         ],

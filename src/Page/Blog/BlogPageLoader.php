@@ -30,11 +30,11 @@ class BlogPageLoader
     private EntityRepositoryInterface $blogRepository;
 
     public function __construct(
-        SystemConfigService                $systemConfigService,
-        GenericPageLoaderInterface         $genericLoader,
-        EventDispatcherInterface           $eventDispatcher,
+        SystemConfigService $systemConfigService,
+        GenericPageLoaderInterface $genericLoader,
+        EventDispatcherInterface $eventDispatcher,
         SalesChannelCmsPageLoaderInterface $cmsPageLoader,
-        EntityRepositoryInterface          $blogRepository
+        EntityRepositoryInterface $blogRepository
     ) {
         $this->systemConfigService = $systemConfigService;
         $this->genericLoader = $genericLoader;
@@ -50,13 +50,13 @@ class BlogPageLoader
      * It assigns metadata to page instance
      * It dispatches an event to allow other extensions to modify the page instance
      *
-     * @param Request $request
-     * @param SalesChannelContext $context
-     * @return BlogPage
+     * @param  Request                          $request
+     * @param  SalesChannelContext              $context
      * @throws PageNotFoundException
      * @throws InconsistentCriteriaIdsException
      * @throws MissingRequestParameterException
      * @throws ConfigurationNotFoundException
+     * @return BlogPage
      */
     public function load(Request $request, SalesChannelContext $context): BlogPage
     {
@@ -86,7 +86,7 @@ class BlogPageLoader
         if ($metaInformation = $page->getMetaInformation()) {
             $metaTitle = $blogEntry->getMetaTitle() ?? $blogEntry->getTitle();
             $metaDescription = $blogEntry->getMetaDescription() ?? $blogEntry->getTeaser();
-            $metaAuthor = $blogEntry->getAuthor()->getFullName();
+            $metaAuthor = $blogEntry->getAuthor() ? $blogEntry->getAuthor()->getFullName() : '';
             $metaInformation->setMetaTitle($metaTitle ?? '');
             $metaInformation->setMetaDescription($metaDescription ?? '');
             $metaInformation->setAuthor($metaAuthor ?? '');
@@ -105,10 +105,10 @@ class BlogPageLoader
      * It dispatches an event to allow other extensions to modify the criteria
      * It gets and returns the Blog Entry's instance for the given criteria
      *
-     * @param string $articleId
-     * @param SalesChannelContext $context
-     * @return BlogEntriesEntity
+     * @param  string                $articleId
+     * @param  SalesChannelContext   $context
      * @throws PageNotFoundException
+     * @return BlogEntriesEntity
      */
     private function loadBlogEntry(string $articleId, SalesChannelContext $context): BlogEntriesEntity
     {
@@ -134,11 +134,11 @@ class BlogPageLoader
      * It gets the CMS Page's id from the plugin configuration
      * It gets and returns the CMS Page's instance for the given id
      *
-     * @param Request $request
-     * @param SalesChannelContext $context
-     * @return CmsPageEntity
+     * @param  Request                        $request
+     * @param  SalesChannelContext            $context
      * @throws PageNotFoundException
      * @throws ConfigurationNotFoundException
+     * @return CmsPageEntity
      */
     private function loadBlogDetailCmsPage(Request $request, SalesChannelContext $context): CmsPageEntity
     {

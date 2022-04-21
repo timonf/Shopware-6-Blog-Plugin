@@ -2,7 +2,6 @@
 
 namespace Sas\BlogModule\Controller;
 
-use Sas\BlogModule\Content\Blog\BlogEntriesEntity;
 use Sas\BlogModule\Page\Blog\BlogPageLoader;
 use Sas\BlogModule\Page\Search\BlogSearchPageLoader;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
@@ -85,12 +84,8 @@ class BlogController extends StorefrontController
     public function detailAction(Request $request, SalesChannelContext $context): Response
     {
         $page = $this->blogPageLoader->load($request, $context);
-        $entry = $page->getBlogEntry();
 
-        return $this->renderStorefront('@Storefront/storefront/page/content/index.html.twig', [
-            'page' => $page,
-            'entry' => $entry,
-        ]);
+        return $this->renderStorefront('@Storefront/storefront/page/content/index.html.twig', ['page' => $page]);
     }
 
     /**
@@ -117,7 +112,7 @@ class BlogController extends StorefrontController
 
         $response = $this->renderStorefront('@SasBlogModule/storefront/page/rss.html.twig', [
             'results' => $results,
-            'page' => $page,
+            'page'    => $page,
         ]);
         $response->headers->set('Content-Type', 'application/xml; charset=utf-8');
 

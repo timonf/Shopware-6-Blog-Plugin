@@ -4,30 +4,21 @@ import swVersionHelper from '../../helper/shopware-version.helper';
 
 import slugify from '@slugify';
 
-const { Component, Mixin } = Shopware;
-const { Criteria } = Shopware.Data;
-const { debounce } = Shopware.Utils;
-const { cloneDeep } = Shopware.Utils.object;
-const { ShopwareError } = Shopware.Classes;
+const { Component, Data, Utils, Classes } = Shopware;
+const { Criteria } = Data;
+const { debounce } = Utils;
+const { cloneDeep } = Utils.object;
+const { ShopwareError } = Classes;
 const debounceTimeout = 300;
 
 Component.extend('sas-blog-detail', 'sw-cms-detail', {
     template,
 
-    inject: [
-        'repositoryFactory',
-    ],
-
-    mixins: [
-        Mixin.getByName('notification'),
-        Mixin.getByName('sas-slug-generator'),
-    ],
-
     data() {
         return {
             blogId: null,
             blog: null,
-            slugBlog: null,
+            originalSlug: null,
             isLoading: false,
             localeLanguage: null,
             showSectionModal: false,
@@ -142,7 +133,7 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
 
             return this.blogRepository.get(blogId, Shopware.Context.api, this.loadBlogCriteria).then((entity) => {
                 this.blog = entity;
-                this.slugBlog = entity.slug;
+                this.originalSlug = entity.slug;
 
                 if (entity.cmsPageId) {
                     this.page = entity.cmsPage;
@@ -394,7 +385,7 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
                 return this.cmsPageIsValidV648();
             }
 
-            return this.cmsPageIsValidV640()
+            return this.cmsPageIsValidV640();
         },
 
         /**
@@ -494,13 +485,15 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
             criteria.addFilter(Criteria.equals('slug', slug));
 
             this.blogRepository.search(criteria, Shopware.Context.api).then((blogs) => {
-                if (this.isCreateMode) {
-                    this.blog.slug = this.generateSlugForCreatePage(blogs, slug);
-                    return;
-                }
+                const articlesWithSameSlugCount = blogs.length;
+                const isSlugUpdated = this.originalSlug !== slug;
 
-                this.blog.slug = this.generateSlugForDetailsPage(blogs, slug, this.slugBlog);
-            }).catch((e) => {
+                if (articlesWithSameSlugCount && isSlugUpdated) {
+                    this.blog.slug = slug + '-' + '1';
+                } else {
+                    this.blog.slug = slug;
+                }
+            }).catch(() => {
                 this.blog.slug = slug;
             });
         },
@@ -509,6 +502,7 @@ Component.extend('sas-blog-detail', 'sw-cms-detail', {
             this.page = this.pageRepository.create();
             this.page.name = name;
             this.page.type = BLOG.PAGE_TYPES.BLOG_DETAIL;
+            this.page.sections = [];
             this.pageId = this.page.id;
         },
     },
