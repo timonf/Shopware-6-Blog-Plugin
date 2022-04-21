@@ -38,7 +38,7 @@ Component.extend('sas-cms-sidebar', 'sw-cms-sidebar', {
 
     computed: {
         mediaItem() {
-            return this.blog?.media;
+            return this.blog && this.blog.media;
         },
 
         mediaRepository() {

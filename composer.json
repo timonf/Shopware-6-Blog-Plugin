@@ -7,13 +7,16 @@
     "license":"MIT",
     "authors":[
         {
-            "name":"Shape & Shift",
+            "name": "Shape & Shift",
             "email": "hello@shapeandshift.dev",
             "role": "Manufacturer"
         }
     ],
-    "require": {
-        "shopware/core": "~6.4.0"
+    "require-dev": {
+        "shopware/core": "~6.4.0",
+        "shopware/administration": "~6.4.0",
+        "shopware/storefront": "~6.4.0",
+        "phpunit/phpunit": "^9.5"
     },
     "extra": {
         "shopware-plugin-class": "Sas\\BlogModule\\SasBlogModule",
@@ -39,6 +42,11 @@
     "autoload": {
         "psr-4": {
             "Sas\\BlogModule\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BlogModule\\Tests\\": "tests/PHPUnit/"
         }
     }
 }

@@ -59,7 +59,8 @@
                     "text": "Dein Blog Artikel wurde gespeichert."
                 },
                 "error": {
-                    "missingCategory": "Bitte wähle mind. eine Kategorie!"
+                    "missingCategory": "Bitte wähle mind. eine Kategorie!",
+                    "pageInvalid": "Einige Fehler sind aufgetreten. Bitte überprüfe die Liste im Editor."
                 }
             },
             "author": {

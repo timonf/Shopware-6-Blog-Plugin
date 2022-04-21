@@ -5,5 +5,12 @@
   "license": "MIT",
   "dependencies": {
     "slugify": "^1.4.6"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.15.0",
+    "@babel/preset-env": "^7.15.6",
+    "@babel/runtime": "^7.15.4",
+    "jest": "^27.1.1"
   }
 }
