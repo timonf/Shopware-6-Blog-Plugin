@@ -1,0 +1,21 @@
+{
+    "bootstrap": "./phpunit.autoload.php",
+    "minMsi": 20,
+    "minCoveredMsi": 20,
+    "source": {
+        "directories": [
+            "src"
+        ],
+        "excludes": [
+            "/\\Definition\\.php/",
+            "/\\Entity\\.php/",
+            "/\\Collection\\.php/",
+            "Resources",
+            "Migration"
+        ]
+    },
+    "mutators": {
+        "@default": true
+    },
+    "$schema": "vendor/infection/infection/resources/schema.json"
+}

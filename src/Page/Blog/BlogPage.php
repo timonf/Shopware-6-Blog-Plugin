@@ -4,7 +4,6 @@ namespace Sas\BlogModule\Page\Blog;
 
 use Sas\BlogModule\Content\Blog\BlogEntriesDefinition;
 use Sas\BlogModule\Content\Blog\BlogEntriesEntity;
-use Shopware\Core\Content\Cms\CmsPageEntity;
 use Shopware\Storefront\Page\Navigation\NavigationPage;
 
 class BlogPage extends NavigationPage

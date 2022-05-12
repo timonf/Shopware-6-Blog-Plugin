@@ -3,7 +3,7 @@ const { Component } = Shopware;
 Component.override('sw-cms-list', {
     computed: {
         sortPageTypes() {
-            const sortPageTypes = [
+            return [
                 { value: '', name: this.$tc('sw-cms.sorting.labelSortByAllPages'), active: true },
                 { value: 'page', name: this.$tc('sw-cms.sorting.labelSortByShopPages') },
                 { value: 'landingpage', name: this.$tc('sw-cms.sorting.labelSortByLandingPages') },
@@ -11,8 +11,6 @@ Component.override('sw-cms-list', {
                 { value: 'product_detail', name: this.$tc('sw-cms.sorting.labelSortByProductPages') },
                 { value: 'blog_detail', name: this.$tc('sw-cms.sorting.labelSortByBlogPages') },
             ];
-
-            return sortPageTypes;
         },
     },
 });

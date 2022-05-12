@@ -1,8 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace Sas\BlogModule\Content\Blog\DataResolver;
+namespace Sas\BlogModule\Content\Cms\DataResolver;
 
 use Sas\BlogModule\Content\Blog\BlogEntriesEntity;
+use Sas\BlogModule\Content\Blog\DataResolver\BlogDetailCmsElementResolver;
 use Shopware\Core\Content\Cms\Aggregate\CmsSection\CmsSectionCollection;
 use Shopware\Core\Content\Cms\Aggregate\CmsSlot\CmsSlotCollection;
 use Shopware\Core\Content\Cms\CmsPageEntity;
@@ -22,7 +23,8 @@ class SasCmsSlotsDataResolver extends CmsSlotsDataResolver
     /**
      * @param CmsElementResolverInterface[] $resolvers
      */
-    public function __construct(CmsSlotsDataResolver $decorated, iterable $resolvers) {
+    public function __construct(CmsSlotsDataResolver $decorated, iterable $resolvers)
+    {
         $this->decorated = $decorated;
 
         foreach ($resolvers as $resolver) {
@@ -30,6 +32,17 @@ class SasCmsSlotsDataResolver extends CmsSlotsDataResolver
         }
     }
 
+    /**
+     * Resolves the data for the given slots.
+     * It calls the decorated resolve method to get resolved slot.
+     * Then it checks if there are any slot that needs to be resolved by BlogDetailCmsElementResolver.
+     * If so, it calls the decorated resolve method again to resolve the data for the slot.
+     * Otherwise, it skips the slot.
+     *
+     * @param  CmsSlotCollection $slots
+     * @param  ResolverContext   $resolverContext
+     * @return CmsSlotCollection
+     */
     public function resolve(CmsSlotCollection $slots, ResolverContext $resolverContext): CmsSlotCollection
     {
         $slots = $this->decorated->resolve($slots, $resolverContext);

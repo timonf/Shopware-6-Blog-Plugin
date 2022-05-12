@@ -1,19 +1,30 @@
-// For a detailed explanation regarding each configuration property, visit:
-// https://jestjs.io/docs/en/configuration.html
+const { resolve, join } = require('path');
+
+const ADMIN_PATH = resolve('../../../../vendor/shopware/administration/Resources/app/administration');
+process.env.ADMIN_PATH = process.env.ADMIN_PATH || ADMIN_PATH;
 
 module.exports = {
-    'rootDir': '.',
-    'verbose': true,
-    'moduleFileExtensions': [
-        'js'
-    ],
-    "transform": {
-        ".*.js": "<rootDir>/node_modules/babel-jest",
+    preset: '@shopware-ag/jest-preset-sw6-admin',
+
+    globals: {
+        adminPath: process.env.ADMIN_PATH,
     },
-    "transformIgnorePatterns": [
-        "node_modules/(?!variables/.*)",
+
+    verbose: true,
+
+    collectCoverageFrom: [
+        'src/**/*.js',
     ],
-    "testMatch": [
-        "<rootDir>/tests/**/*.spec.js"
-    ]
+
+    moduleNameMapper: {
+        '\@slugify': 'slugify',
+        '^plugin-admin(.*)$': '<rootDir>$1',
+        '\@vue/test-utils': '<rootDir>/node_modules/@vue/test-utils',
+        '../../_mocks_/entity-schema.json': '<rootDir>/test/_mocks_/entity-schema.json',
+        vue$: 'vue/dist/vue.common.dev.js',
+    },
+
+    setupFilesAfterEnv: [
+        resolve(join(process.env.ADMIN_PATH, '/test/_setup/prepare_environment.js'))
+    ],
 };

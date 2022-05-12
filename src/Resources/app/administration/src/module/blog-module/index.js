@@ -13,11 +13,6 @@ import './extension/component/cms/sas-cms-slot';
 import './extension/component/cms/sas-cms-sidebar';
 
 /**
- * Mixin
- */
-import './mixin/sas-slug-generator.mixin';
-
-/**
  * privileges
  */
 import './page/sas-blog-detail/acl';
@@ -78,21 +73,21 @@ Module.register('blog-module', {
 
     snippets: {
         'de-DE': deDE,
-        'en-GB': enGB
+        'en-GB': enGB,
     },
 
     routes: {
         index: {
             components: {
-                default: 'sas-blog-list'
+                default: 'sas-blog-list',
             },
             path: 'index',
         },
         create: {
             components: {
-                default: 'sas-blog-create'
+                default: 'sas-blog-create',
             },
-            path: 'create'
+            path: 'create',
         },
         detail: {
             component: 'sas-blog-detail',
@@ -102,10 +97,10 @@ Module.register('blog-module', {
             path: 'author',
             component: 'sas-blog-author-list',
             meta: {
-                parentPath: 'blog.module.index'
+                parentPath: 'blog.module.index',
             },
             redirect: {
-                name: 'blog.module.author.index'
+                name: 'blog.module.author.index',
             },
         },
         'author.index': {
@@ -116,16 +111,16 @@ Module.register('blog-module', {
             path: 'author/new',
             component: 'sas-blog-author-create',
             meta: {
-                parentPath: 'blog.module.author.index'
-            }
+                parentPath: 'blog.module.author.index',
+            },
         },
         'author.detail': {
             path: 'author/detail/:id',
             component: 'sas-blog-author-detail',
             meta: {
-                parentPath: 'blog.module.author.index'
-            }
-        }
+                parentPath: 'blog.module.author.index',
+            },
+        },
     },
 
     navigation: [
@@ -140,7 +135,7 @@ Module.register('blog-module', {
                     'sas_blog_author:read',
                     'sas_blog_entries:read',
                 ],
-            }
-        }
-    ]
+            },
+        },
+    ],
 });

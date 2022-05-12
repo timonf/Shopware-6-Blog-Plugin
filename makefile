@@ -25,17 +25,36 @@ clean: ## Cleans all dependencies
 	rm -rf ./src/Resources/app/administration/node_modules/*
 	rm -rf ./src/Resources/app/administration/package-lock.json
 
+admin: ## Installs all admin dependencies
+	cd vendor/shopware/administration/Resources/app/administration && npm install
+
 # ------------------------------------------------------------------------------------------------------------
+
+phpcheck: ## Starts the PHP syntax checks
+	@find . -name '*.php' -not -path "./vendor/*" -not -path "./tests/*" | xargs -n 1 -P4 php -l
+
+csfix: ## Starts the PHP CS Fixer
+	@php vendor/bin/php-cs-fixer fix --config=./.php_cs.php --dry-run
 
 phpunit: ## Starts all PHPUnit Tests
-	php ./vendor/bin/phpunit --configuration=./phpunit.xml
+	@XDEBUG_MODE=coverage php vendor/bin/phpunit --configuration=phpunit.xml --coverage-html ../../../public/.reports/blogmodule/coverage
 
-stan: ## Starts the PHPStan Analyser
-	php ./vendor/bin/phpstan --memory-limit=1G analyse .
+infection: ## Starts all Infection/Mutation tests
+	@XDEBUG_MODE=coverage php vendor/bin/infection --configuration=./.infection.json
+
+jest: ## Starts all Jest tests
+	cd ./src/Resources/app/administration && ./node_modules/.bin/jest --config=jest.config.js
+
+eslint: ## Starts the ESLinter
+	cd ./src/Resources/app/administration && ./node_modules/.bin/eslint --config ./.eslintrc.json ./src
 
 # ------------------------------------------------------------------------------------------------------------
 
-review: ## Starts the full review pipeline
-	make phpunit -B
-	make ecs -B
-	make stan -B
+pr: ## Prepares everything for a Pull Request
+	@php vendor/bin/php-cs-fixer fix --config=./.php_cs.php
+	@make phpcheck -B
+	@make phpunit -B
+	@make infection -B
+	@make csfix -B
+	@make jest -B
+	@make eslint -B

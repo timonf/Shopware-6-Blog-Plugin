@@ -65,7 +65,9 @@ SQL;
 
             $this->insertCmsPages($connection);
 
-            $connection->executeStatement($updateSql);
+            if ($updateSql !== '') {
+                $connection->executeStatement($updateSql);
+            }
 
             $connection->commit();
         } catch (\Throwable $e) {
@@ -84,80 +86,80 @@ SQL;
     {
         $cmsPageId = Uuid::randomBytes();
         $this->cmsPageQueue[] = [
-            'id' => $cmsPageId,
+            'id'         => $cmsPageId,
             'version_id' => $versionId,
-            'type' => 'blog_detail',
-            'locked' => 0,
+            'type'       => 'blog_detail',
+            'locked'     => 0,
             'created_at' => $createdAt,
         ];
 
         $cmsSectionId = Uuid::randomBytes();
         $this->cmsSectionQueue[] = [
-            'id' => $cmsSectionId,
-            'version_id' => $versionId,
-            'cms_page_id' => $cmsPageId,
+            'id'                  => $cmsSectionId,
+            'version_id'          => $versionId,
+            'cms_page_id'         => $cmsPageId,
             'cms_page_version_id' => $versionId,
-            'position' => 0,
-            'type' => 'default',
-            'locked' => 0,
-            'sizing_mode' => 'boxed',
-            'mobile_behavior' => 'wrap',
-            'created_at' => $createdAt,
+            'position'            => 0,
+            'type'                => 'default',
+            'locked'              => 0,
+            'sizing_mode'         => 'boxed',
+            'mobile_behavior'     => 'wrap',
+            'created_at'          => $createdAt,
         ];
 
         $cmsBlockId = Uuid::randomBytes();
         $this->cmsBlockQueue[] = [
-            'id' => $cmsBlockId,
-            'version_id' => $versionId,
-            'cms_section_id' => $cmsSectionId,
+            'id'                     => $cmsBlockId,
+            'version_id'             => $versionId,
+            'cms_section_id'         => $cmsSectionId,
             'cms_section_version_id' => $versionId,
-            'position' => 0,
-            'section_position' => 'main',
-            'type' => 'text',
-            'margin_top' => '20px',
-            'margin_bottom' => '20px',
-            'margin_left' => '20px',
-            'margin_right' => '20px',
-            'created_at' => $createdAt,
+            'position'               => 0,
+            'section_position'       => 'main',
+            'type'                   => 'text',
+            'margin_top'             => '20px',
+            'margin_bottom'          => '20px',
+            'margin_left'            => '20px',
+            'margin_right'           => '20px',
+            'created_at'             => $createdAt,
         ];
 
         $cmsSlotId = Uuid::randomBytes();
         $this->cmsSlotQueue[] = [
-            'id' => $cmsSlotId,
-            'version_id' => $versionId,
-            'cms_block_id' => $cmsBlockId,
+            'id'                   => $cmsSlotId,
+            'version_id'           => $versionId,
+            'cms_block_id'         => $cmsBlockId,
             'cms_block_version_id' => $versionId,
-            'type' => 'text',
-            'slot' => 'content',
-            'created_at' => $createdAt,
+            'type'                 => 'text',
+            'slot'                 => 'content',
+            'created_at'           => $createdAt,
         ];
 
         foreach ($blogTranslations as $blogTranslation) {
             $content = [
                 'content' => [
                     'source' => 'static',
-                    'value' => $blogTranslation['content'],
+                    'value'  => $blogTranslation['content'],
                 ],
                 'verticalAlign' => [
                     'source' => 'static',
-                    'value' => null,
+                    'value'  => null,
                 ],
             ];
 
             $this->cmsPageTranslationQueue[] = [
-                'cms_page_id' => $cmsPageId,
+                'cms_page_id'         => $cmsPageId,
                 'cms_page_version_id' => $versionId,
-                'language_id' => $blogTranslation['language_id'],
-                'name' => $blogTranslation['title'],
-                'created_at' => $createdAt,
+                'language_id'         => $blogTranslation['language_id'],
+                'name'                => $blogTranslation['title'],
+                'created_at'          => $createdAt,
             ];
 
             $this->cmsSlotTranslationQueue[] = [
-                'cms_slot_id' => $cmsSlotId,
+                'cms_slot_id'         => $cmsSlotId,
                 'cms_slot_version_id' => $versionId,
-                'language_id' => $blogTranslation['language_id'],
-                'config' => json_encode($content),
-                'created_at' => $createdAt,
+                'language_id'         => $blogTranslation['language_id'],
+                'config'              => json_encode($content),
+                'created_at'          => $createdAt,
             ];
         }
 

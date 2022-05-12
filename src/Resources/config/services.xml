@@ -64,8 +64,8 @@
             <argument id="sas_blog_entries.repository" type="service"/>
         </service>
 
-        <service id="Sas\BlogModule\Content\Blog\DataResolver\SasCmsSlotsDataResolver" decorates="Shopware\Core\Content\Cms\DataResolver\CmsSlotsDataResolver">
-            <argument type="service" id="Sas\BlogModule\Content\Blog\DataResolver\SasCmsSlotsDataResolver.inner"/>
+        <service id="Sas\BlogModule\Content\Cms\DataResolver\SasCmsSlotsDataResolver" decorates="Shopware\Core\Content\Cms\DataResolver\CmsSlotsDataResolver">
+            <argument type="service" id="Sas\BlogModule\Content\Cms\DataResolver\SasCmsSlotsDataResolver.inner"/>
             <argument type="tagged" tag="shopware.cms.data_resolver"/>
         </service>
 
@@ -110,7 +110,6 @@
         <service id="Sas\BlogModule\Page\Search\BlogSearchPageLoader">
             <argument type="service" id="Shopware\Storefront\Page\GenericPageLoader"/>
             <argument id="sas_blog_entries.repository" type="service"/>
-            <argument type="service" id="event_dispatcher"/>
         </service>
 
         <service id="Sas\BlogModule\Core\Content\Sitemap\Provider\BlogUrlProvider" >

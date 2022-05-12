@@ -14,13 +14,13 @@ class BlogPageCriteriaEvent extends Event implements ShopwareSalesChannelEvent
 
     protected Criteria $criteria;
 
-    protected SalesChannelContext $context;
+    protected SalesChannelContext $salesChannelContext;
 
     public function __construct(string $articleId, Criteria $criteria, SalesChannelContext $context)
     {
         $this->articleId = $articleId;
         $this->criteria = $criteria;
-        $this->context = $context;
+        $this->salesChannelContext = $context;
     }
 
     public function getArticleId(): string
@@ -35,11 +35,11 @@ class BlogPageCriteriaEvent extends Event implements ShopwareSalesChannelEvent
 
     public function getContext(): Context
     {
-        return $this->context->getContext();
+        return $this->salesChannelContext->getContext();
     }
 
     public function getSalesChannelContext(): SalesChannelContext
     {
-        return $this->context;
+        return $this->salesChannelContext;
     }
 }
